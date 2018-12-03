@@ -59,7 +59,7 @@ public class MapperTest {
     user.setNicknames(NICKNAMES);
 
     Address address = new Address();
-    address.setStreet(STREET);
+    address.setStreetName(STREET);
     address.setHouseNr(HOUSE_NR);
     user.setAddress(address);
 

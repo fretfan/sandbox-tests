@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Address {
 
-  private String street;
+  private String streetName;
   private Integer houseNr;
 
 }
