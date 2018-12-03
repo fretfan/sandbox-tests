@@ -9,7 +9,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import ma.glasnost.orika.BoundMapperFacade;
+import ma.glasnost.orika.MapperFactory;
 import mapper.dozer.DozerSingleton;
+import mapper.dozer.OrikaSingleton;
 import mapper.models.Address;
 import mapper.models.Role;
 import mapper.models.RoleDto;
@@ -38,6 +41,37 @@ public class MapperTest {
     User user = generateUser();
     UserDto dto = mapper.map(user, UserDto.class);
 
+    assertDtoFieldsMappedCorrectly(dto);
+  }
+
+  @Test
+  public void testOrika() {
+    MapperFactory mapperFactory = OrikaSingleton.getInstance();
+    mapperFactory.classMap(User.class, UserDto.class)
+    .field("addressX.streetName", "address.street")
+    .field("addressX.houseNr", "address.houseNr")
+    .byDefault()
+    .register();
+
+//    MapperFacade mapper = mapperFactory.getMapperFacade();
+//
+//    User user = generateUser();
+//    UserDto dto = mapper.map(user, UserDto.class);
+//
+//    User map = mapper.map(dto, User.class);
+
+    BoundMapperFacade<User, UserDto> mapper = mapperFactory.getMapperFacade(User.class, UserDto.class);
+
+    User user = generateUser();
+    UserDto mappedDto = mapper.map(user);
+
+    User mappedEntity = mapper.mapReverse(mappedDto);
+
+    assertDtoFieldsMappedCorrectly(mappedDto);
+    assertEntityFieldsMappedCorrectly(mappedEntity);
+  }
+
+  private void assertDtoFieldsMappedCorrectly(UserDto dto) {
     assertThat(dto.getName(), is(NAME));
     assertThat(dto.getRating(), is(RATING));
     assertThat(dto.getBirthDate(), is(BIRTHDATE));
@@ -48,7 +82,19 @@ public class MapperTest {
     List<String> roles = dto.getRoles().stream().map(RoleDto::getName).collect(Collectors.toList());
 
     assertThat(roles, hasItems(ADMIN, MODERATOR));
+  }
 
+  private void assertEntityFieldsMappedCorrectly(User entity) {
+    assertThat(entity.getName(), is(NAME));
+    assertThat(entity.getRating(), is(RATING));
+    assertThat(entity.getBirthDate(), is(BIRTHDATE));
+    assertThat(entity.getNicknames(), is(NICKNAMES));
+    assertThat(entity.getAddressX().getStreetName(), is(STREET));
+    assertThat(entity.getAddressX().getHouseNr(), is(HOUSE_NR));
+
+    List<String> roles = entity.getRoles().stream().map(Role::getName).collect(Collectors.toList());
+
+    assertThat(roles, hasItems(ADMIN, MODERATOR));
   }
 
   private User generateUser() {
@@ -61,7 +107,7 @@ public class MapperTest {
     Address address = new Address();
     address.setStreetName(STREET);
     address.setHouseNr(HOUSE_NR);
-    user.setAddress(address);
+    user.setAddressX(address);
 
     user.setRoles(ROLES);
 

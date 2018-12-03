@@ -13,7 +13,7 @@ public class User {
   private String name;
   private Integer rating;
   private LocalDate birthDate;
-  private Address address;
+  private Address addressX;
   private List<String> nicknames;
   private List<Role> roles;
 
